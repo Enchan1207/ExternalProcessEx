@@ -11,6 +11,16 @@ class ViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let process = Process()
+        process.executableURL = .init(fileURLWithPath: "/bin/ls")
+        process.arguments = ["-1", "/Applications"]
+        
+        do {
+            try process.run()
+        } catch {
+            print(error)
+        }
 
         // Do any additional setup after loading the view.
     }
