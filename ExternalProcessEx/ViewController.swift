@@ -13,40 +13,22 @@ class ViewController: NSViewController {
         super.viewDidLoad()
         
         let process = Process()
+        process.executableURL = .init(fileURLWithPath: "/usr/bin/python3")
         
-        // 外部プロセスのパスと引数を設定
-        process.executableURL = .init(fileURLWithPath: "/usr/bin/curl")
-        process.arguments = ["-i", "https://example.com"]
-        
-        // パイプを作り、プロセスのstdoutにつなぐ　繋がれなかったパイプはアプリケーションの出力に流れるらしいので
-        // 困るときは明示的にnilにしておく (curlは受信状況をstderrに吐き出すので今回はnilに設定)
-        let outputPipe = Pipe()
-        process.standardError = nil
+        // パイプ生成
+        let inputPipe = Pipe(), outputPipe = Pipe()
+        process.standardInput = inputPipe.fileHandleForReading
         process.standardOutput = outputPipe.fileHandleForWriting
         
-        // process.run()はスレッドブロックしないので、terminationHandlerに終了後の処理を記述
-        process.terminationHandler = {(process: Process) -> Void in
-            print("Exitcode: \(process.terminationStatus)")
-            
-            // パイプを閉じて
-            do {
-                try outputPipe.fileHandleForWriting.close()
-            } catch {
-                print(error)
-            }
-            
-            // 出力を取得
-            guard let avaliableData = try? outputPipe.fileHandleForReading.readToEnd() else {return}
-            print(String(data: avaliableData, encoding: .utf8)!)
-            print("(\(avaliableData.count) bytes)")
-        }
-        
-        // 実行
+        // まずは実行
         do {
             try process.run()
         } catch {
             print(error)
         }
+        
+        // 突っ込んでみる
+        inputPipe.fileHandleForWriting.write("print(\"Hello, World!\")".data(using: .utf8)!)
         
     }
     
