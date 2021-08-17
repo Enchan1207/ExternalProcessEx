@@ -14,21 +14,14 @@ class ViewController: NSViewController {
         
         let process = Process()
         process.executableURL = .init(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = ["-r", "print('Hello, World')"]
         
-        // パイプ生成
-        let inputPipe = Pipe(), outputPipe = Pipe()
-        process.standardInput = inputPipe.fileHandleForReading
-        process.standardOutput = outputPipe.fileHandleForWriting
-        
-        // まずは実行
+        // 実行
         do {
             try process.run()
         } catch {
             print(error)
         }
-        
-        // 突っ込んでみる
-        inputPipe.fileHandleForWriting.write("print(\"Hello, World!\")".data(using: .utf8)!)
         
     }
     
